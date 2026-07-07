@@ -1,0 +1,149 @@
+<title>DNA — ARCHIVE</title>
+<style>
+  /* Визитка живёт в одном мире — тёмном. Это выбор бренда, не упущение. */
+  :root, :root[data-theme="light"], :root[data-theme="dark"] {
+    --bg: #0B0A08;
+    --ink: #E9E3D5;
+    --muted: #857D6D;
+    --brass: #B49B6C;
+    --hairline: #211D16;
+  }
+  html { background: var(--bg); }
+  body {
+    background:
+      radial-gradient(ellipse 120% 80% at 50% -10%, #16130D 0%, var(--bg) 60%);
+    color: var(--ink);
+    font-family: Georgia, "Times New Roman", serif;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    box-sizing: border-box;
+  }
+  .card { text-align: center; max-width: 440px; width: 100%; }
+
+  .ring {
+    width: 120px; height: 120px;
+    border: 1px solid var(--brass);
+    border-radius: 50%;
+    margin: 0 auto 12px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    animation: breathe 7s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    50% { box-shadow: 0 0 34px rgba(180, 155, 108, 0.13); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ring { animation: none; }
+    .maxim { transition: none !important; }
+  }
+  .ring .dna {
+    font-family: Didot, "Bodoni MT", Georgia, serif;
+    font-size: 30px; letter-spacing: 0.1em;
+  }
+  .ring .arc {
+    font-family: "Segoe UI", system-ui, sans-serif;
+    font-size: 8px; letter-spacing: 0.5em; text-transform: uppercase;
+    color: var(--muted); margin-top: 4px; padding-left: 0.5em;
+  }
+
+  h1 {
+    font-family: Didot, "Bodoni MT", Georgia, serif;
+    font-weight: 400;
+    font-size: 30px;
+    letter-spacing: 0.2em;
+    margin: 28px 0 10px;
+  }
+  .creed {
+    font-family: "Segoe UI", system-ui, sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 44px;
+  }
+
+  .maxim {
+    font-style: italic;
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--ink);
+    min-height: 58px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 44px;
+    max-width: 34ch;
+    opacity: 1;
+    transition: opacity 1.2s ease;
+    text-wrap: balance;
+  }
+  .maxim.fade { opacity: 0; }
+
+  .links { display: flex; flex-direction: column; gap: 14px; margin-bottom: 52px; }
+  .links a {
+    display: block;
+    border: 1px solid var(--hairline);
+    color: var(--ink);
+    text-decoration: none;
+    padding: 16px 20px;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    transition: border-color 0.4s ease, color 0.4s ease;
+  }
+  .links a span { color: var(--muted); letter-spacing: 0.1em; text-transform: none; }
+  .links a:hover, .links a:focus-visible { border-color: var(--brass); color: var(--brass); outline: none; }
+  .links a:focus-visible { box-shadow: 0 0 0 1px var(--brass); }
+
+  footer {
+    font-family: "Segoe UI", system-ui, sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  footer .dot { color: var(--brass); padding: 0 10px; }
+</style>
+
+<div class="card">
+  <div class="ring">
+    <div class="dna">DNA</div>
+    <div class="arc">Archive</div>
+  </div>
+
+  <h1>DNA — ARCHIVE</h1>
+  <div class="creed">Discipline · Motion · Vision</div>
+
+  <p class="maxim" id="maxim">A private world, documented.</p>
+
+  <nav class="links">
+    <a href="https://www.instagram.com/dna.aes/" target="_blank" rel="noopener">Instagram <span>— @dna.aes</span></a>
+  </nav>
+
+  <footer>Riga <span class="dot">·</span> The archive does not hurry</footer>
+</div>
+
+<script>
+  // Тихая ротация максим — по одной за визит-цикл, без суеты
+  const maxims = [
+    'A private world, documented.',
+    'Rule 01. Never explain.',
+    'Quiet is a strategy.',
+    'The Baltic does not hurry.',
+    'Motion is memory.',
+    'Built in silence, kept in order.'
+  ];
+  const el = document.getElementById('maxim');
+  let i = 0;
+  setInterval(() => {
+    el.classList.add('fade');
+    setTimeout(() => {
+      i = (i + 1) % maxims.length;
+      el.textContent = maxims[i];
+      el.classList.remove('fade');
+    }, 1200);
+  }, 8000);
+</script>
