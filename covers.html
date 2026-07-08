@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DNA Archive — генератор обложек</title>
+<style>
+  :root, :root[data-theme="light"], :root[data-theme="dark"] {
+    --bg: #0B0A08;
+    --panel: #141210;
+    --ink: #E9E3D5;
+    --muted: #857D6D;
+    --brass: #B49B6C;
+    --hairline: #262119;
+    --field: #100E0B;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Segoe UI", system-ui, sans-serif; }
+  .wrap {
+    max-width: 1180px; margin: 0 auto; padding: 32px 24px 72px;
+    display: grid; grid-template-columns: 380px 1fr; gap: 40px; align-items: start;
+  }
+  @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } }
+
+  h1 {
+    font-family: "Bodoni MT", Didot, Georgia, serif; font-weight: 400;
+    font-size: 26px; letter-spacing: 0.18em; margin: 0 0 4px;
+  }
+  .tagline { color: var(--muted); font-size: 12px; letter-spacing: 0.22em;
+    text-transform: uppercase; margin-bottom: 32px; }
+
+  .field { margin-bottom: 22px; }
+  label { display: block; font-size: 11px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+
+  .rubrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .rubrics button {
+    background: var(--field); border: 1px solid var(--hairline); color: var(--muted);
+    padding: 12px 4px; font-size: 11px; letter-spacing: 0.14em; cursor: pointer;
+    font-family: inherit; transition: all .25s;
+  }
+  .rubrics button.active { border-color: var(--brass); color: var(--brass); }
+  .rubrics button:hover { color: var(--ink); }
+
+  input[type=text], textarea {
+    width: 100%; background: var(--field); border: 1px solid var(--hairline);
+    color: var(--ink); padding: 12px 14px; font-family: Georgia, serif;
+    font-size: 15px; border-radius: 0; outline: none; resize: vertical;
+  }
+  input[type=text]:focus, textarea:focus { border-color: var(--brass); }
+
+  .file-row { display: flex; gap: 8px; align-items: center; }
+  .btn {
+    background: var(--field); border: 1px solid var(--hairline); color: var(--ink);
+    padding: 11px 16px; font-size: 12px; letter-spacing: 0.1em; cursor: pointer;
+    font-family: inherit; transition: all .25s; text-align: center;
+  }
+  .btn:hover { border-color: var(--brass); color: var(--brass); }
+  .btn.ghost { color: var(--muted); }
+
+  .toggle { display: flex; align-items: center; gap: 10px; cursor: pointer;
+    font-size: 13px; color: var(--ink); }
+  .toggle input { accent-color: var(--brass); width: 16px; height: 16px; }
+
+  .download {
+    width: 100%; background: var(--brass); border: none; color: #0B0A08;
+    padding: 16px; font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase;
+    cursor: pointer; font-weight: 600; font-family: inherit; margin-top: 6px;
+  }
+  .download:hover { background: #c9ae7c; }
+
+  .stage { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .canvas-frame { border: 1px solid var(--hairline); line-height: 0; box-shadow: 0 30px 80px rgba(0,0,0,.5); }
+  #preview { width: 300px; height: 533px; display: block; }
+  .hint { color: var(--muted); font-size: 12px; text-align: center; max-width: 340px; line-height: 1.6; }
+  .grid-note { color: var(--muted); font-size: 11px; letter-spacing: 0.1em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="controls">
+    <h1>DNA — ARCHIVE</h1>
+    <div class="tagline">Генератор обложек · 1080 × 1920</div>
+
+    <div class="field">
+      <label>Рубрика</label>
+      <div class="rubrics" id="rubrics">
+        <button data-r="CODE">CODE</button>
+        <button data-r="MOTION">MOTION</button>
+        <button data-r="VISION">VISION</button>
+        <button data-r="ARCHIVE">ARCHIVE</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Текст обложки</label>
+      <textarea id="title" rows="2">Rule 01. Never explain.</textarea>
+    </div>
+
+    <div class="field">
+      <label>Подпись снизу (необязательно)</label>
+      <input type="text" id="footer" value="RIGA">
+    </div>
+
+    <div class="field">
+      <label>Свой кадр (необязательно)</label>
+      <div class="file-row">
+        <label class="btn" style="flex:1; margin:0" for="img">Выбрать фото…</label>
+        <input type="file" id="img" accept="image/*" style="display:none">
+        <button class="btn ghost" id="clearImg">Убрать</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="toggle"><input type="checkbox" id="grain" checked> Зерно (плёночная текстура)</label>
+    </div>
+
+    <button class="download" id="download">Скачать обложку</button>
+  </div>
+
+  <div class="stage">
+    <div class="canvas-frame">
+      <canvas id="preview" width="1080" height="1920"></canvas>
+    </div>
+    <div class="hint">
+      <span class="grid-note">Пунктир</span> — зона, которая видна в квадратной сетке профиля.
+      Держи главный текст внутри неё, и обложка будет читаться и в ленте, и в reels.
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+const cv = document.getElementById('preview');
+const ctx = cv.getContext('2d');
+const W = 1080, H = 1920;
+
+const state = {
+  rubric: 'CODE',
+  title: 'Rule 01. Never explain.',
+  footer: 'RIGA',
+  grain: true,
+  img: null,
+  showGuide: true,
+};
+
+const SERIF = '"Bodoni MT", Didot, "Playfair Display", Georgia, serif';
+const SANS = '"Segoe UI", system-ui, sans-serif';
+
+function wrapLines(text, font, maxWidth) {
+  ctx.font = font;
+  const words = text.split(/\s+/);
+  const lines = []; let line = '';
+  for (const w of words) {
+    const test = line ? line + ' ' + w : w;
+    if (ctx.measureText(test).width > maxWidth && line) { lines.push(line); line = w; }
+    else line = test;
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+function draw(forExport) {
+  ctx.clearRect(0, 0, W, H);
+
+  // фон
+  if (state.img) {
+    const img = state.img;
+    const scale = Math.max(W / img.width, H / img.height);
+    const dw = img.width * scale, dh = img.height * scale;
+    ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
+    // затемняющий градиент для читаемости
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, 'rgba(11,10,8,0.55)');
+    g.addColorStop(0.5, 'rgba(11,10,8,0.35)');
+    g.addColorStop(1, 'rgba(11,10,8,0.75)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  } else {
+    ctx.fillStyle = '#0B0A08'; ctx.fillRect(0, 0, W, H);
+    const g = ctx.createRadialGradient(W/2, H*0.42, 0, W/2, H*0.42, W*0.9);
+    g.addColorStop(0, '#17130D'); g.addColorStop(1, '#0B0A08');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+
+  const cx = W / 2, cy = H / 2;
+
+  // рамка-кайма
+  ctx.strokeStyle = 'rgba(180,155,108,0.35)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(60, 60, W - 120, H - 120);
+
+  // рубрика
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#B49B6C';
+  ctx.font = '600 30px ' + SANS;
+  ctx.letterSpacing = '18px';
+  ctx.fillText(state.rubric.toUpperCase(), cx + 9, cy - 190);
+  ctx.letterSpacing = '0px';
+
+  // разделитель
+  ctx.strokeStyle = 'rgba(180,155,108,0.5)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(cx - 40, cy - 140); ctx.lineTo(cx + 40, cy - 140); ctx.stroke();
+
+  // заголовок
+  ctx.fillStyle = '#EFEADD';
+  const titleFont = '400 76px ' + SERIF;
+  const lines = wrapLines(state.title, titleFont, W - 260);
+  ctx.font = titleFont;
+  const lh = 92;
+  let ty = cy - (lines.length - 1) * lh / 2 + 20;
+  for (const ln of lines) { ctx.fillText(ln, cx, ty); ty += lh; }
+
+  // кольцо DNA снизу
+  ctx.strokeStyle = 'rgba(180,155,108,0.7)';
+  ctx.lineWidth = 2;
+  const ringY = H - 230, ringR = 58;
+  ctx.beginPath(); ctx.arc(cx, ringY, ringR, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = '#EFEADD';
+  ctx.font = '400 34px ' + SERIF;
+  ctx.letterSpacing = '4px';
+  ctx.fillText('DNA', cx + 2, ringY + 6);
+  ctx.letterSpacing = '0px';
+
+  // подпись снизу
+  if (state.footer.trim()) {
+    ctx.fillStyle = '#857D6D';
+    ctx.font = '600 24px ' + SANS;
+    ctx.letterSpacing = '10px';
+    ctx.fillText(state.footer.toUpperCase(), cx + 5, H - 120);
+    ctx.letterSpacing = '0px';
+  }
+
+  // зерно
+  if (state.grain) drawGrain();
+
+  // направляющая квадрата (не попадает в экспорт)
+  if (state.showGuide && !forExport) {
+    const sq = (H - W) / 2;
+    ctx.strokeStyle = 'rgba(233,227,213,0.35)';
+    ctx.lineWidth = 2; ctx.setLineDash([14, 12]);
+    ctx.strokeRect(0, sq, W, W);
+    ctx.setLineDash([]);
+  }
+}
+
+let grainCanvas = null;
+function drawGrain() {
+  if (!grainCanvas) {
+    grainCanvas = document.createElement('canvas');
+    grainCanvas.width = 300; grainCanvas.height = 533;
+    const gc = grainCanvas.getContext('2d');
+    const id = gc.createImageData(300, 533);
+    for (let i = 0; i < id.data.length; i += 4) {
+      const v = Math.random() * 255;
+      id.data[i] = id.data[i+1] = id.data[i+2] = v;
+      id.data[i+3] = 12;
+    }
+    gc.putImageData(id, 0, 0);
+  }
+  ctx.globalCompositeOperation = 'overlay';
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(grainCanvas, 0, 0, W, H);
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+// управление
+document.getElementById('rubrics').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  state.rubric = b.dataset.r;
+  document.querySelectorAll('#rubrics button').forEach(x => x.classList.toggle('active', x === b));
+  const presets = {
+    CODE: 'Rule 01. Never explain.',
+    MOTION: 'Riga. 07:42.',
+    VISION: 'The Baltic does not hurry.',
+    ARCHIVE: 'Archive, vol. 01.'
+  };
+  document.getElementById('title').value = presets[state.rubric];
+  state.title = presets[state.rubric];
+  draw();
+});
+document.getElementById('title').addEventListener('input', e => { state.title = e.target.value; draw(); });
+document.getElementById('footer').addEventListener('input', e => { state.footer = e.target.value; draw(); });
+document.getElementById('grain').addEventListener('change', e => { state.grain = e.target.checked; draw(); });
+document.getElementById('img').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => { const im = new Image(); im.onload = () => { state.img = im; draw(); }; im.src = r.result; };
+  r.readAsDataURL(f);
+});
+document.getElementById('clearImg').addEventListener('click', () => {
+  state.img = null; document.getElementById('img').value = ''; draw();
+});
+document.getElementById('download').addEventListener('click', () => {
+  draw(true); // без направляющей
+  cv.toBlob(blob => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    const safe = (state.rubric + '-' + state.title).replace(/[^a-zа-я0-9]+/gi, '-').slice(0, 40);
+    a.download = 'dna-' + safe.toLowerCase() + '.png';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    draw(); // вернуть направляющую в превью
+  }, 'image/png');
+});
+
+document.querySelector('#rubrics button').classList.add('active');
+draw();
+</script>
+</body>
+</html>
